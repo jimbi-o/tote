@@ -2,10 +2,10 @@
 #include <doctest/doctest.h>
 #include "tote/tote_array.h"
 namespace {
-void* Allocate(const uint32_t size) {
+void* Allocate(const uint32_t size, void*) {
   return malloc(size);
 }
-void Deallocate(void* ptr) {
+void Deallocate(void* ptr, void*) {
   free(ptr);
 }
 } // namespace

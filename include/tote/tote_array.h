@@ -4,10 +4,11 @@
 #include <utility>
 namespace tote {
 struct AllocatorCallbacks {
-  using AllocateFunction = void*(const uint32_t size);
-  using DeallocateFunction = void(void*);
+  using AllocateFunction = void*(const uint32_t size, void* user_context);
+  using DeallocateFunction = void(void*, void* user_context);
   AllocateFunction*   allocate;
   DeallocateFunction* deallocate;
+  void* user_context;
 };
 template <typename T>
 class ResizableArray final {
@@ -65,7 +66,7 @@ ResizableArray<T>::~ResizableArray() {
 template <typename T>
 void ResizableArray<T>::release_allocated_buffer() {
   if (head_ != nullptr) {
-    allocator_callbacks_.deallocate(head_);
+    allocator_callbacks_.deallocate(head_, allocator_callbacks_.user_context);
   }
   size_ = 0;
   capacity_ = 0;
@@ -96,10 +97,10 @@ void ResizableArray<T>::change_capacity(const uint32_t new_capacity) {
     size_ = new_capacity;
   }
   capacity_ = new_capacity;
-  head_ = static_cast<T*>(allocator_callbacks_.allocate(sizeof(T) * new_capacity));
+  head_ = static_cast<T*>(allocator_callbacks_.allocate(sizeof(T) * new_capacity, allocator_callbacks_.user_context));
   if (prev_head != nullptr) {
     memcpy(head_, prev_head, sizeof(T) * (size_));
-    allocator_callbacks_.deallocate(prev_head);
+    allocator_callbacks_.deallocate(prev_head, allocator_callbacks_.user_context);
   }
 }
 } // namespace tote
