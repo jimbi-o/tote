@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.15)
-project(minimalcpppj
+project(tote
   VERSION 1.0
-  DESCRIPTION "minimal cpp pj template"
+  DESCRIPTION "A brief, lightweight C++ library for containers such as resizable arrays and hash maps."
   LANGUAGES CXX
 )
 
@@ -17,7 +17,6 @@ endfunction()
 download_cpm()
 
 CPMAddPackage("gh:onqtam/doctest#2.4.6")
-CPMAddPackage("gh:gabime/spdlog@1.9.2")
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_executable(${CMAKE_PROJECT_NAME})
@@ -27,9 +26,6 @@ if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
 else()
   add_library(${PROJECT_NAME})
 endif()
-target_include_directories(${PROJECT_NAME} SYSTEM INTERFACE spdlog)
-set_target_properties(spdlog PROPERTIES INTERFACE_SYSTEM_INCLUDE_DIRECTORIES $<TARGET_PROPERTY:spdlog,INTERFACE_INCLUDE_DIRECTORIES>)
-target_link_libraries(${PROJECT_NAME} PRIVATE spdlog::spdlog)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 target_compile_options(${PROJECT_NAME} PRIVATE
@@ -43,8 +39,8 @@ target_include_directories(${PROJECT_NAME}
   PUBLIC
   "include"
 )
-target_precompile_headers(${PROJECT_NAME}
-  PRIVATE
-  "${spdlog_SOURCE_DIR}/include/spdlog/spdlog.h"
-)
 add_subdirectory(src)
+
+if(MSVC)
+  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT {$CMAKE_PROJECT_NAME})
+endif()
