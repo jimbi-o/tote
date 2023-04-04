@@ -20,12 +20,12 @@ class ResizableArray final {
   constexpr bool empty() const { return size() == 0; }
   /**
    * reset size to zero.
-   * destructor for T is no called.
+   * destructor for T is not called.
    **/
   void clear() { size_ = 0; }
   /**
-   * release allocated buffer.
-   * destructor for T is no called.
+   * release allocated buffer which reduces size and capacity to zero.
+   * destructor for T is not called.
    **/
   void release_allocated_buffer();
   void push_back(T);
