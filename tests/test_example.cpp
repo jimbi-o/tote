@@ -1,10 +1,16 @@
 #include <stdlib.h>
 #include <doctest/doctest.h>
 #include "tote/tote_array.h"
+
+#ifndef TOTE_HASH_KEY_TYPE
+#define TOTE_HASH_KEY_TYPE uint32_t
+#endif
+
 namespace tote {
-template <typename K, typename V>
+template <typename V>
 class HashMap final {
  public:
+  using KeyType = TOTE_HASH_KEY_TYPE;
   HashMap(AllocatorCallbacks allocator_callbacks, const uint32_t initial_capacity);
   ~HashMap();
   constexpr uint32_t size() const { return size_; }
@@ -20,14 +26,14 @@ class HashMap final {
    * destructor for T is not called.
    **/
   void release_allocated_buffer();
-  void insert(const K, V);
-  void emplace(const K, V&&);
-  void erase(const K);
-  bool contains(const K) const;
-  V& operator[](const K);
-  const V& operator[](const K) const;
+  void insert(const KeyType, V);
+  void emplace(const KeyType, V&&);
+  void erase(const KeyType);
+  bool contains(const KeyType) const;
+  V& operator[](const KeyType);
+  const V& operator[](const KeyType) const;
   template <typename T>
-  using IteratorFunction = void (*)(T*, const K, V*);
+  using IteratorFunction = void (*)(T*, const KeyType, V*);
   template <typename T>
   void iterate(IteratorFunction<T>, T*);
  private:
@@ -37,6 +43,15 @@ class HashMap final {
   uint32_t capacity_;
 };
 bool IsPrimeNumber(const uint32_t);
+} // namespace tote
+namespace tote {
+bool IsPrimeNumber(const uint32_t n) {
+  if (n <= 1) { return false; }
+  for (uint32_t i = 2; i * i <= n; i++) {
+    if (n % i == 0) { return false; }
+  }
+  return true;
+}
 } // namespace tote
 namespace {
 void* Allocate(const uint32_t size, void*) {
@@ -144,6 +159,21 @@ TEST_CASE("empty resizable array") {
   CHECK_EQ(resizable_array.size(), 1);
   CHECK_GT(resizable_array.capacity(), 0);
 }
+TEST_CASE("prime number") {
+  using namespace tote;
+  CHECK_UNARY_FALSE(IsPrimeNumber(0));
+  CHECK_UNARY_FALSE(IsPrimeNumber(1));
+  CHECK_UNARY(IsPrimeNumber(2));
+  CHECK_UNARY(IsPrimeNumber(3));
+  CHECK_UNARY_FALSE(IsPrimeNumber(4));
+  CHECK_UNARY(IsPrimeNumber(5));
+  CHECK_UNARY_FALSE(IsPrimeNumber(6));
+  CHECK_UNARY(IsPrimeNumber(7));
+  CHECK_UNARY_FALSE(IsPrimeNumber(1000));
+  CHECK_UNARY(IsPrimeNumber(1001));
+  CHECK_UNARY_FALSE(IsPrimeNumber(1002));
+  CHECK_UNARY_FALSE(IsPrimeNumber(1003));
+}
 TEST_CASE("hash map") {
   using namespace tote;
   AllocatorCallbacks allocator_callbacks {
@@ -151,7 +181,7 @@ TEST_CASE("hash map") {
     .deallocate = Deallocate,
     .user_context = nullptr,
   };
-  HashMap<uint32_t, uint32_t> hash_map(allocator_callbacks, 5);
+  HashMap<uint32_t> hash_map(allocator_callbacks, 5);
   CHECK_UNARY(hash_map.empty());
   CHECK_EQ(hash_map.size(), 0);
   CHECK_EQ(hash_map.capacity(), 5);
