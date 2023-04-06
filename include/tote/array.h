@@ -2,14 +2,8 @@
 #include <stdint.h>
 #include <string.h>
 #include <utility>
+#include "allocator_callbacks.h"
 namespace tote {
-struct AllocatorCallbacks {
-  using AllocateFunction = void*(const uint32_t size, void* user_context);
-  using DeallocateFunction = void(void*, void* user_context);
-  AllocateFunction*   allocate;
-  DeallocateFunction* deallocate;
-  void* user_context;
-};
 template <typename T>
 class ResizableArray final {
  public:

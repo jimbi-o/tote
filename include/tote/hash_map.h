@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <string.h>
+#include "allocator_callbacks.h"
 #ifndef TOTE_HASH_KEY_TYPE
 #define TOTE_HASH_KEY_TYPE uint32_t
 #endif
