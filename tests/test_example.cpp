@@ -1,6 +1,6 @@
 #include <stdlib.h>
 #include <doctest/doctest.h>
-#include "tote/tote_array.h"
+#include "tote/array.h"
 
 #ifndef TOTE_HASH_KEY_TYPE
 #define TOTE_HASH_KEY_TYPE uint32_t
