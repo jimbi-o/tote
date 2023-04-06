@@ -297,8 +297,8 @@ TEST_CASE("resizable array") {
   CHECK_UNARY(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 0);
   CHECK_EQ(resizable_array.capacity(), capacity);
-  resizable_array.emplace_back(0);
-  resizable_array.emplace_back(1);
+  resizable_array.push_back(0);
+  resizable_array.push_back(1);
   CHECK_EQ(resizable_array.size(), 2);
   CHECK_EQ(resizable_array[0], 0);
   CHECK_EQ(resizable_array[1], 1);
@@ -306,8 +306,8 @@ TEST_CASE("resizable array") {
   CHECK_UNARY(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 0);
   CHECK_EQ(resizable_array.capacity(), 0);
-  resizable_array.emplace_back(0);
-  resizable_array.emplace_back(1);
+  resizable_array.push_back(0);
+  resizable_array.push_back(1);
   CHECK_EQ(resizable_array.size(), 2);
   CHECK_EQ(resizable_array[0], 0);
   CHECK_EQ(resizable_array[1], 1);

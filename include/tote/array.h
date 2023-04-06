@@ -29,7 +29,6 @@ class ResizableArray final {
    **/
   void release_allocated_buffer();
   void push_back(T);
-  void emplace_back(T&&);
   T* begin() { return head_; }
   const T* begin() const { return head_; }
   T* end() { return head_ + size_; }
@@ -80,15 +79,6 @@ void ResizableArray<T>::push_back(T val) {
     change_capacity(size_);
   }
   head_[index] = val;
-}
-template <typename T>
-void ResizableArray<T>::emplace_back(T&& val) {
-  auto index = size_;
-  size_++;
-  if (index >= capacity_) {
-    change_capacity(size_);
-  }
-  head_[index] = std::move(val);
 }
 template <typename T>
 void ResizableArray<T>::change_capacity(const uint32_t new_capacity) {
