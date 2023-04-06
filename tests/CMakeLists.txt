@@ -1,5 +1,6 @@
 target_sources(${PROJECT_NAME}
   PRIVATE
   "test_main.cpp"
-  "test_example.cpp"
+  "test_array.cpp"
+  "test_hash_map.cpp"
 )
