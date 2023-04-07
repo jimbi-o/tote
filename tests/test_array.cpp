@@ -1,23 +1,15 @@
-#include <stdlib.h>
-#include <doctest/doctest.h>
 #include "tote/array.h"
-#include "tote/hash_map.h"
-namespace {
-void* Allocate(const uint32_t size, void*) {
-  return malloc(size);
-}
-void Deallocate(void* ptr, void*) {
-  free(ptr);
-}
-} // namespace
+#include "test_alloc.inl"
+#include <doctest/doctest.h>
 TEST_CASE("resizable array") {
   using namespace tote;
-  AllocatorCallbacks allocator_callbacks {
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
     .allocate = Allocate,
     .deallocate = Deallocate,
-    .user_context = nullptr,
+    .user_context = &user_context,
   };
-  ResizableArray<uint32_t> resizable_array(allocator_callbacks, 0, 4);
+  ResizableArray<uint32_t, UserContext> resizable_array(allocator_callbacks, 0, 4);
   CHECK_UNARY(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 0);
   CHECK_EQ(resizable_array.capacity(), 4);
@@ -94,10 +86,13 @@ TEST_CASE("resizable array") {
   CHECK_UNARY_FALSE(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 2);
   CHECK_GE(resizable_array.capacity(), 2);
+  resizable_array.~ResizableArray();
+  CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
 }
 TEST_CASE("empty resizable array") {
   using namespace tote;
-  ResizableArray<uint32_t> resizable_array({.allocate = Allocate, .deallocate = Deallocate, .user_context = nullptr,}, 0, 0);
+  UserContext user_context{};
+  ResizableArray<uint32_t, UserContext> resizable_array({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context,}, 0, 0);
   CHECK_UNARY(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 0);
   CHECK_EQ(resizable_array.capacity(), 0);
@@ -107,4 +102,6 @@ TEST_CASE("empty resizable array") {
   CHECK_UNARY_FALSE(resizable_array.empty());
   CHECK_EQ(resizable_array.size(), 1);
   CHECK_GT(resizable_array.capacity(), 0);
+  resizable_array.~ResizableArray();
+  CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
 }

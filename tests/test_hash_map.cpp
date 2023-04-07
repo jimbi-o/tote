@@ -1,7 +1,7 @@
 #include <stdlib.h>
-#include <doctest/doctest.h>
-#include "tote/array.h"
 #include "tote/hash_map.h"
+#include "test_alloc.inl"
+#include <doctest/doctest.h>
 namespace {
 void* Allocate(const uint32_t size, void*) {
   return malloc(size);
@@ -39,12 +39,13 @@ TEST_CASE("prime number") {
 }
 TEST_CASE("hash map") {
   using namespace tote;
-  AllocatorCallbacks allocator_callbacks {
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
     .allocate = Allocate,
     .deallocate = Deallocate,
-    .user_context = nullptr,
+    .user_context = &user_context,
   };
-  HashMap<uint32_t> hash_map(allocator_callbacks, 5);
+  HashMap<uint32_t, UserContext> hash_map(allocator_callbacks, 5);
   CHECK_UNARY(hash_map.empty());
   CHECK_EQ(hash_map.size(), 0);
   CHECK_EQ(hash_map.capacity(), 5);
@@ -216,4 +217,6 @@ TEST_CASE("hash map") {
   CHECK_EQ(entity.count, hash_map.size());
   CHECK_EQ(entity.key_sum, key_sum_calculated);
   CHECK_EQ(entity.sum, sum_calculated);
+  hash_map.~HashMap();
+  CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
 }

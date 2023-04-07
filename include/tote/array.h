@@ -4,10 +4,10 @@
 #include <utility>
 #include "allocator_callbacks.h"
 namespace tote {
-template <typename T>
+template <typename T, typename U>
 class ResizableArray final {
  public:
-  ResizableArray(AllocatorCallbacks allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity);
+  ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity);
   ~ResizableArray();
   constexpr uint32_t size() const { return size_; }
   constexpr uint32_t capacity() const { return capacity_; }
@@ -35,13 +35,13 @@ class ResizableArray final {
   const T& operator[](const uint32_t index) const { return *(head_ + index); }
  private:
   void change_capacity(const uint32_t new_capacity);
-  AllocatorCallbacks allocator_callbacks_;
+  AllocatorCallbacks<U> allocator_callbacks_;
   uint32_t size_;
   uint32_t capacity_;
   T* head_;
 };
-template <typename T>
-ResizableArray<T>::ResizableArray(AllocatorCallbacks allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity)
+template <typename T, typename U>
+ResizableArray<T, U>::ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity)
     : allocator_callbacks_(allocator_callbacks)
     , size_(initial_size)
     , capacity_(initial_capacity)
@@ -52,12 +52,12 @@ ResizableArray<T>::ResizableArray(AllocatorCallbacks allocator_callbacks, const 
   }
   change_capacity(capacity_);
 }
-template <typename T>
-ResizableArray<T>::~ResizableArray() {
+template <typename T, typename U>
+ResizableArray<T, U>::~ResizableArray() {
   release_allocated_buffer();
 }
-template <typename T>
-void ResizableArray<T>::release_allocated_buffer() {
+template <typename T, typename U>
+void ResizableArray<T, U>::release_allocated_buffer() {
   if (head_ != nullptr) {
     allocator_callbacks_.deallocate(head_, allocator_callbacks_.user_context);
   }
@@ -65,8 +65,8 @@ void ResizableArray<T>::release_allocated_buffer() {
   capacity_ = 0;
   head_ = nullptr;
 }
-template <typename T>
-void ResizableArray<T>::push_back(T val) {
+template <typename T, typename U>
+void ResizableArray<T, U>::push_back(T val) {
   auto index = size_;
   size_++;
   if (index >= capacity_) {
@@ -74,8 +74,8 @@ void ResizableArray<T>::push_back(T val) {
   }
   head_[index] = val;
 }
-template <typename T>
-void ResizableArray<T>::change_capacity(const uint32_t new_capacity) {
+template <typename T, typename U>
+void ResizableArray<T, U>::change_capacity(const uint32_t new_capacity) {
   auto prev_head = head_;
   if (size_ > new_capacity) {
     size_ = new_capacity;
