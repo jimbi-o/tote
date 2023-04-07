@@ -37,6 +37,21 @@ TEST_CASE("prime number") {
   CHECK_EQ(GetLargerOrEqualPrimeNumber(1013), 1013);
   CHECK_EQ(GetLargerOrEqualPrimeNumber(1013), 1013);
 }
+TEST_CASE("power of 2 align") {
+  using namespace tote;
+  CHECK_EQ(Align(0, 2), 0);
+  CHECK_EQ(Align(1, 2), 2);
+  CHECK_EQ(Align(2, 2), 2);
+  CHECK_EQ(Align(3, 2), 4);
+  CHECK_EQ(Align(4, 2), 4);
+  CHECK_EQ(Align(4, 8), 8);
+  CHECK_EQ(Align(5, 8), 8);
+  CHECK_EQ(Align(6, 8), 8);
+  CHECK_EQ(Align(7, 8), 8);
+  CHECK_EQ(Align(8, 8), 8);
+  CHECK_EQ(Align(8, 16), 16);
+  CHECK_EQ(Align(17, 16), 32);
+}
 TEST_CASE("hash map") {
   using namespace tote;
   UserContext user_context{};
