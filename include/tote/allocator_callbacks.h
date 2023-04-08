@@ -1,4 +1,5 @@
 #pragma once
+namespace tote{
 template <typename T>
 struct AllocatorCallbacks {
   using AllocateFunction = void*(const uint32_t size, T* user_context);
@@ -7,3 +8,4 @@ struct AllocatorCallbacks {
   DeallocateFunction* deallocate;
   T* user_context;
 };
+}
