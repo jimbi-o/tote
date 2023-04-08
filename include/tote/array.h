@@ -8,8 +8,8 @@ template <typename T, typename U>
 class ResizableArray final {
  public:
   ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size = 0, const uint32_t initial_capacity = 0);
-  ResizableArray(ResizableArray&& other);
-  ResizableArray& operator=(ResizableArray&& other);
+  ResizableArray(ResizableArray&&);
+  ResizableArray& operator=(ResizableArray&&);
   ~ResizableArray();
   constexpr uint32_t size() const { return size_; }
   constexpr uint32_t capacity() const { return capacity_; }
@@ -36,14 +36,14 @@ class ResizableArray final {
   T& operator[](const uint32_t index) { return *(head_ + index); }
   const T& operator[](const uint32_t index) const { return *(head_ + index); }
  private:
-  ResizableArray() = delete;
-  ResizableArray(const ResizableArray&) = delete;
-  void operator=(const ResizableArray&) = delete;
   void change_capacity(const uint32_t new_capacity);
   AllocatorCallbacks<U> allocator_callbacks_;
   uint32_t size_;
   uint32_t capacity_;
   T* head_;
+  ResizableArray() = delete;
+  ResizableArray(const ResizableArray&) = delete;
+  void operator=(const ResizableArray&) = delete;
 };
 template <typename T, typename U>
 ResizableArray<T, U>::ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity)

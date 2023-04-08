@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <string.h>
+#include <utility>
 #include "allocator_callbacks.h"
 #ifndef TOTE_HASH_KEY_TYPE
 #define TOTE_HASH_KEY_TYPE uint32_t
@@ -16,7 +17,9 @@ template <typename V, typename U>
 class HashMap final {
  public:
   using KeyType = TOTE_HASH_KEY_TYPE;
-  HashMap(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_capacity);
+  HashMap(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_capacity = 0);
+  HashMap(HashMap&&);
+  HashMap& operator=(HashMap&&);
   ~HashMap();
   constexpr uint32_t size() const { return size_; }
   constexpr uint32_t capacity() const { return capacity_; }
@@ -54,6 +57,9 @@ class HashMap final {
   uint32_t size_{};
   uint32_t capacity_{}; // always >0 for simple implementation.
   void* ptr_{};
+  HashMap() = delete;
+  HashMap(const HashMap&) = delete;
+  void operator=(const HashMap&) = delete;
 };
 bool IsPrimeNumber(const uint32_t);
 uint32_t GetLargerOrEqualPrimeNumber(const uint32_t);
@@ -66,6 +72,48 @@ HashMap<V, U>::HashMap(AllocatorCallbacks<U> allocator_callbacks, const uint32_t
     , capacity_(0)
 {
   change_capacity(GetLargerOrEqualPrimeNumber(initial_capacity));
+}
+template <typename V, typename U>
+HashMap<V, U>::HashMap(HashMap&& other)
+    : allocator_callbacks_(std::move(other.allocator_callbacks_))
+    , occupied_flags_(other.occupied_flags_)
+    , keys_(other.keys_)
+    , values_(other.values_)
+    , size_(other.size_)
+    , capacity_(other.capacity_)
+    , ptr_(other.ptr_)
+{
+  other.allocator_callbacks_ = {};
+  other.occupied_flags_ = nullptr;
+  other.keys_ = nullptr;
+  other.values_ = nullptr;
+  other.size_ = 0;
+  other.capacity_ = 0;
+  other.ptr_ = nullptr;
+}
+template <typename V, typename U>
+HashMap<V, U>& HashMap<V, U>::operator=(HashMap&& other)
+{
+  if (this != &other) {
+    if (ptr_) {
+      allocator_callbacks_.deallocate(ptr_, allocator_callbacks_.user_context);
+    }
+    allocator_callbacks_ = std::move(other.allocator_callbacks_);
+    occupied_flags_ = other.occupied_flags_;
+    keys_ = other.keys_;
+    values_ = other.values_;
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    ptr_ = other.ptr_;
+    other.allocator_callbacks_ = {};
+    other.occupied_flags_ = nullptr;
+    other.keys_ = nullptr;
+    other.values_ = nullptr;
+    other.size_ = 0;
+    other.capacity_ = 0;
+    other.ptr_ = nullptr;
+  }
+  return *this;
 }
 template <typename V, typename U>
 HashMap<V, U>::~HashMap() {
