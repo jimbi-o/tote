@@ -293,10 +293,13 @@ TEST_CASE("move") {
   CHECK_EQ(hash_map_c[0], 1);
   CHECK_EQ(hash_map_c[1], 2);
   CHECK_EQ(hash_map_c[2], 3);
+  CHECK_EQ(user_context.alloc_count, alloc_count);
+  hash_map_c.insert(100, 101);
+  CHECK_EQ(hash_map_c[100], 101);
   hash_map_a.~HashMap();
   hash_map_b.~HashMap();
   hash_map_c.~HashMap();
-  CHECK_EQ(user_context.alloc_count, alloc_count);
+  CHECK_GE(user_context.alloc_count, alloc_count);
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
   CHECK_UNARY(user_context.ptr.empty());
   CHECK_EQ(user_context2.alloc_count, 1);

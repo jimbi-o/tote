@@ -114,7 +114,11 @@ void ResizableArray<T, U>::change_capacity(const uint32_t new_capacity) {
     size_ = new_capacity;
   }
   capacity_ = new_capacity;
-  head_ = static_cast<T*>(allocator_callbacks_.allocate(sizeof(T) * new_capacity, allocator_callbacks_.user_context));
+  if (capacity_ > 0) {
+    head_ = static_cast<T*>(allocator_callbacks_.allocate(sizeof(T) * new_capacity, allocator_callbacks_.user_context));
+  } else {
+    head_ = nullptr;
+  }
   if (prev_head != nullptr) {
     memcpy(head_, prev_head, sizeof(T) * (size_));
     allocator_callbacks_.deallocate(prev_head, allocator_callbacks_.user_context);

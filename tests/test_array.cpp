@@ -163,10 +163,26 @@ TEST_CASE("move") {
   CHECK_EQ(resizable_array_c[1], 2);
   CHECK_EQ(resizable_array_c[2], 3);
   CHECK_EQ(user_context.alloc_count, alloc_count);
+  UserContext user_context_d{};
+  ResizableArray<uint32_t, UserContext> resizable_array_d({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context_d,});
+  resizable_array_d.push_back(0);
+  resizable_array_d = std::move(resizable_array_c);
+  CHECK_EQ(resizable_array_d.size(), 3);
+  CHECK_GE(resizable_array_d.capacity(), 3);
+  CHECK_NE(resizable_array_d.begin(), nullptr);
+  CHECK_EQ(resizable_array_d[0], 1);
+  CHECK_EQ(resizable_array_d[1], 2);
+  CHECK_EQ(resizable_array_d[2], 3);
+  resizable_array_d.push_back(101);
+  CHECK_EQ(resizable_array_d[3], 101);
   resizable_array_a.~ResizableArray();
   resizable_array_b.~ResizableArray();
   resizable_array_c.~ResizableArray();
+  resizable_array_d.~ResizableArray();
   CHECK_EQ(user_context.alloc_count, alloc_count);
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
   CHECK_UNARY(user_context.ptr.empty());
+  CHECK_EQ(user_context_d.alloc_count, 1);
+  CHECK_EQ(user_context_d.alloc_count, user_context_d.dealloc_count);
+  CHECK_UNARY(user_context_d.ptr.empty());
 }
