@@ -44,13 +44,10 @@ template <typename T, typename U>
 ResizableArray<T, U>::ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity)
     : allocator_callbacks_(allocator_callbacks)
     , size_(initial_size)
-    , capacity_(initial_capacity)
+    , capacity_(0)
     , head_(nullptr)
 {
-  if (size_ > capacity_) {
-    capacity_ = size_;
-  }
-  change_capacity(capacity_);
+  change_capacity(initial_size > initial_capacity ? initial_size: initial_capacity);
 }
 template <typename T, typename U>
 ResizableArray<T, U>::~ResizableArray() {
@@ -60,6 +57,7 @@ template <typename T, typename U>
 void ResizableArray<T, U>::release_allocated_buffer() {
   if (head_ != nullptr) {
     allocator_callbacks_.deallocate(head_, allocator_callbacks_.user_context);
+    head_ = nullptr;
   }
   size_ = 0;
   capacity_ = 0;
@@ -70,13 +68,14 @@ void ResizableArray<T, U>::push_back(T val) {
   auto index = size_;
   size_++;
   if (index >= capacity_) {
-    change_capacity(size_);
+    change_capacity(size_ * 2);
   }
   head_[index] = val;
 }
 template <typename T, typename U>
 void ResizableArray<T, U>::change_capacity(const uint32_t new_capacity) {
-  auto prev_head = head_;
+  if (new_capacity < capacity_) { return; }
+  const auto prev_head = head_;
   if (size_ > new_capacity) {
     size_ = new_capacity;
   }

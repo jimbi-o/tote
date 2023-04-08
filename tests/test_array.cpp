@@ -88,6 +88,7 @@ TEST_CASE("resizable array") {
   CHECK_GE(resizable_array.capacity(), 2);
   resizable_array.~ResizableArray();
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
+  CHECK_UNARY(user_context.ptr.empty());
 }
 TEST_CASE("empty resizable array") {
   using namespace tote;
@@ -104,4 +105,5 @@ TEST_CASE("empty resizable array") {
   CHECK_GT(resizable_array.capacity(), 0);
   resizable_array.~ResizableArray();
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
+  CHECK_UNARY(user_context.ptr.empty());
 }

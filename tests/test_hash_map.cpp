@@ -234,4 +234,5 @@ TEST_CASE("hash map") {
   CHECK_EQ(entity.sum, sum_calculated);
   hash_map.~HashMap();
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
+  CHECK_UNARY(user_context.ptr.empty());
 }
