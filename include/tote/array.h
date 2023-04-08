@@ -7,7 +7,9 @@ namespace tote {
 template <typename T, typename U>
 class ResizableArray final {
  public:
-  ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size, const uint32_t initial_capacity);
+  ResizableArray(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_size = 0, const uint32_t initial_capacity = 0);
+  ResizableArray(ResizableArray&& other);
+  ResizableArray& operator=(ResizableArray&& other);
   ~ResizableArray();
   constexpr uint32_t size() const { return size_; }
   constexpr uint32_t capacity() const { return capacity_; }
@@ -34,6 +36,9 @@ class ResizableArray final {
   T& operator[](const uint32_t index) { return *(head_ + index); }
   const T& operator[](const uint32_t index) const { return *(head_ + index); }
  private:
+  ResizableArray() = delete;
+  ResizableArray(const ResizableArray&) = delete;
+  void operator=(const ResizableArray&) = delete;
   void change_capacity(const uint32_t new_capacity);
   AllocatorCallbacks<U> allocator_callbacks_;
   uint32_t size_;
@@ -52,6 +57,35 @@ ResizableArray<T, U>::ResizableArray(AllocatorCallbacks<U> allocator_callbacks, 
 template <typename T, typename U>
 ResizableArray<T, U>::~ResizableArray() {
   release_allocated_buffer();
+}
+template <typename T, typename U>
+ResizableArray<T, U>::ResizableArray(ResizableArray&& other)
+    : allocator_callbacks_(std::move(other.allocator_callbacks_))
+    , size_(other.size_)
+    , capacity_(other.capacity_)
+    , head_(other.head_)
+{
+  other.allocator_callbacks_ = {};
+  other.size_ = 0;
+  other.capacity_ = 0;
+  other.head_ = nullptr;
+}
+template <typename T, typename U>
+ResizableArray<T, U> & ResizableArray<T, U>::operator=(ResizableArray&& other) {
+  if (this != &other) {
+    if (head_) {
+      allocator_callbacks_.deallocate(head_, allocator_callbacks_.user_context);
+    }
+    allocator_callbacks_ = std::move(other.allocator_callbacks_);
+    size_ = other.size_;
+    capacity_ = other.capacity_;
+    head_ = other.head_;
+    other.allocator_callbacks_ = {};
+    other.size_ = 0;
+    other.capacity_ = 0;
+    other.head_ = nullptr;
+  }
+  return *this;
 }
 template <typename T, typename U>
 void ResizableArray<T, U>::release_allocated_buffer() {
