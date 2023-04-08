@@ -20,9 +20,12 @@ CPMAddPackage("gh:onqtam/doctest#2.4.6")
 
 if (CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
   add_executable(${CMAKE_PROJECT_NAME})
-	target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE DOCTEST_CONFIG_SUPER_FAST_ASSERTS)
-	target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${doctest_SOURCE_DIR}")
-	add_subdirectory(tests)
+  target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE DOCTEST_CONFIG_SUPER_FAST_ASSERTS)
+  target_include_directories(${CMAKE_PROJECT_NAME} SYSTEM PUBLIC "${doctest_SOURCE_DIR}")
+  add_subdirectory(tests)
+  if(MSVC)
+    set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT {$CMAKE_PROJECT_NAME})
+  endif()
 else()
   add_library(${PROJECT_NAME})
 endif()
@@ -40,7 +43,3 @@ target_include_directories(${PROJECT_NAME}
   "include"
 )
 add_subdirectory(src)
-
-if(MSVC)
-  set_property(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR} PROPERTY VS_STARTUP_PROJECT {$CMAKE_PROJECT_NAME})
-endif()
