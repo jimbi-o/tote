@@ -30,7 +30,7 @@ class HashMap final {
    **/
   void clear();
   /**
-   * clears the map and reduce capacity to minimum.
+   * clear the map and deallocate internal buffers.
    * destructor for T is not called.
    **/
   void clear_and_shrink_capacity();
@@ -129,7 +129,6 @@ void HashMap<V, U>::clear() {
 template <typename V, typename U>
 void HashMap<V, U>::clear_and_shrink_capacity() {
   release_allocated_buffer();
-  change_capacity(2);
 }
 template <typename V, typename U>
 void HashMap<V, U>::release_allocated_buffer() {
@@ -141,8 +140,8 @@ void HashMap<V, U>::release_allocated_buffer() {
 }
 template <typename V, typename U>
 void HashMap<V, U>::insert(const KeyType key, V value) {
-  auto index = find_slot_index(key);
-  if (occupied_flags_[index]) {
+  auto index = capacity_ > 0 ? find_slot_index(key) : ~0U;
+  if (index != ~0U && occupied_flags_[index]) {
     values_[index] = value;
     return;
   }
@@ -187,6 +186,7 @@ void HashMap<V, U>::erase(const KeyType key) {
 }
 template <typename V, typename U>
 bool HashMap<V, U>::contains(const KeyType key) const {
+  if (size_ == 0) { return false; }
   const auto index = find_slot_index(key);
   return occupied_flags_[index];
 }
