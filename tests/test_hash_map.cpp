@@ -196,7 +196,7 @@ TEST_CASE("hash map") {
   CHECK_UNARY_FALSE(hash_map.contains(5));
   CHECK_UNARY_FALSE(hash_map.contains(6));
   CHECK_UNARY(hash_map.contains(100));
-  hash_map.clear_and_shrink_capacity();
+  hash_map.release_allocated_buffer();
   CHECK_UNARY(hash_map.empty());
   CHECK_EQ(hash_map.size(), 0);
   CHECK_EQ(hash_map.capacity(), 0);

@@ -30,10 +30,10 @@ class HashMap final {
    **/
   void clear();
   /**
-   * clear the map and deallocate internal buffers.
+   * release allocated buffer which reduces size and capacity to zero.
    * destructor for T is not called.
    **/
-  void clear_and_shrink_capacity();
+  void release_allocated_buffer();
   void insert(const KeyType, V);
   void erase(const KeyType);
   bool contains(const KeyType) const;
@@ -49,7 +49,6 @@ class HashMap final {
   bool check_load_factor_and_resize();
   void change_capacity(const uint32_t new_capacity);
   void insert_impl(const uint32_t, const KeyType, V value);
-  void release_allocated_buffer();
   AllocatorCallbacks<U> allocator_callbacks_;
   bool* occupied_flags_{};
   KeyType* keys_{};
@@ -125,10 +124,6 @@ void HashMap<V, U>::clear() {
     memset(occupied_flags_, 0, sizeof(occupied_flags_[0]) * capacity_);
   }
   size_ = 0;
-}
-template <typename V, typename U>
-void HashMap<V, U>::clear_and_shrink_capacity() {
-  release_allocated_buffer();
 }
 template <typename V, typename U>
 void HashMap<V, U>::release_allocated_buffer() {
