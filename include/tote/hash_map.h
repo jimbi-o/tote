@@ -209,7 +209,8 @@ uint32_t HashMap<V, U>::find_slot_index(const KeyType key) const {
   while (occupied_flags_[index] && keys_[index] != key) {
     index = (index + 1) % capacity_;
   }
-  return index;
+  if constexpr (sizeof(key) == 4) { return index; }
+  return static_cast<uint32_t>(index);
 }
 template <typename V, typename U>
 bool HashMap<V, U>::check_load_factor_and_resize() {
@@ -251,3 +252,5 @@ void HashMap<V, U>::change_capacity(const uint32_t new_capacity) {
   }
 }
 } // namespace tote
+#undef TOTE_HASH_KEY_TYPE
+#undef TOTE_ALIGNMENT_BYTE
