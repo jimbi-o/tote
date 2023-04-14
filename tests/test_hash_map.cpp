@@ -60,7 +60,7 @@ TEST_CASE("hash map") {
     .deallocate = Deallocate,
     .user_context = &user_context,
   };
-  HashMap<uint32_t, UserContext> hash_map(allocator_callbacks, 5);
+  HashMap<uint32_t, uint32_t, UserContext> hash_map(allocator_callbacks, 5);
   CHECK_UNARY(hash_map.empty());
   CHECK_EQ(hash_map.size(), 0);
   CHECK_EQ(hash_map.capacity(), 5);
@@ -236,10 +236,29 @@ TEST_CASE("hash map") {
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
   CHECK_UNARY(user_context.ptr.empty());
 }
+TEST_CASE("hash map") {
+  using namespace tote;
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
+    .allocate = Allocate,
+    .deallocate = Deallocate,
+    .user_context = &user_context,
+  };
+  HashMap<uint64_t, uint8_t, UserContext> hash_map(allocator_callbacks, 5);
+  hash_map.insert(0UL, 0);
+  hash_map.insert(22UL, 4);
+  hash_map.insert(91UL, 12);
+  CHECK_EQ(hash_map.size(), 3);
+  CHECK_LT(hash_map.size(), hash_map.capacity());
+  CHECK_GT(hash_map.size() * 2, hash_map.capacity());
+  CHECK_EQ(hash_map[0UL], 0);
+  CHECK_EQ(hash_map[22UL], 4);
+  CHECK_EQ(hash_map[91UL], 12);
+}
 TEST_CASE("move") {
   using namespace tote;
   UserContext user_context{};
-  HashMap<uint32_t, UserContext> hash_map_a({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context,});
+  HashMap<uint32_t, uint32_t, UserContext> hash_map_a({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context,});
   hash_map_a.insert(0, 1);
   hash_map_a.insert(1, 2);
   hash_map_a.insert(2, 3);
@@ -281,7 +300,7 @@ TEST_CASE("move") {
   CHECK_EQ(hash_map_b.capacity(), 0);
   CHECK_UNARY(hash_map_b.empty());
   UserContext user_context2{};
-  HashMap<uint32_t, UserContext> hash_map_c({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context2,});
+  HashMap<uint32_t, uint32_t, UserContext> hash_map_c({.allocate = Allocate, .deallocate = Deallocate, .user_context = &user_context2,});
   hash_map_c.insert(100, 101);
   hash_map_c = std::move(hash_map_a);
   CHECK_UNARY_FALSE(hash_map_c.empty());
