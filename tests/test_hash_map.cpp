@@ -321,7 +321,7 @@ TEST_CASE("move") {
   CHECK_GE(user_context.alloc_count, alloc_count);
   CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
   CHECK_UNARY(user_context.ptr.empty());
-  CHECK_EQ(user_context2.alloc_count, 1);
+  CHECK_EQ(user_context2.alloc_count, 3);
   CHECK_EQ(user_context2.alloc_count, user_context2.dealloc_count);
   CHECK_UNARY(user_context2.ptr.empty());
 }

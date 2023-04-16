@@ -47,7 +47,6 @@ class HashMap final {
   V* values_{};
   uint32_t size_{};
   uint32_t capacity_{}; // always >0 for simple implementation.
-  void* ptr_{};
   HashMap() = delete;
   HashMap(const HashMap&) = delete;
   void operator=(const HashMap&) = delete;
@@ -72,7 +71,6 @@ HashMap<K, V, U>::HashMap(HashMap&& other)
     , values_(other.values_)
     , size_(other.size_)
     , capacity_(other.capacity_)
-    , ptr_(other.ptr_)
 {
   other.allocator_callbacks_ = {};
   other.occupied_flags_ = nullptr;
@@ -80,14 +78,15 @@ HashMap<K, V, U>::HashMap(HashMap&& other)
   other.values_ = nullptr;
   other.size_ = 0;
   other.capacity_ = 0;
-  other.ptr_ = nullptr;
 }
 template <typename K, typename V, typename U>
 HashMap<K, V, U>& HashMap<K, V, U>::operator=(HashMap&& other)
 {
   if (this != &other) {
-    if (ptr_) {
-      allocator_callbacks_.deallocate(ptr_, allocator_callbacks_.user_context);
+    if (capacity_ > 0) {
+      allocator_callbacks_.deallocate(occupied_flags_, allocator_callbacks_.user_context);
+      allocator_callbacks_.deallocate(keys_, allocator_callbacks_.user_context);
+      allocator_callbacks_.deallocate(values_, allocator_callbacks_.user_context);
     }
     allocator_callbacks_ = std::move(other.allocator_callbacks_);
     occupied_flags_ = other.occupied_flags_;
@@ -95,14 +94,12 @@ HashMap<K, V, U>& HashMap<K, V, U>::operator=(HashMap&& other)
     values_ = other.values_;
     size_ = other.size_;
     capacity_ = other.capacity_;
-    ptr_ = other.ptr_;
     other.allocator_callbacks_ = {};
     other.occupied_flags_ = nullptr;
     other.keys_ = nullptr;
     other.values_ = nullptr;
     other.size_ = 0;
     other.capacity_ = 0;
-    other.ptr_ = nullptr;
   }
   return *this;
 }
@@ -120,7 +117,9 @@ void HashMap<K, V, U>::clear() {
 template <typename K, typename V, typename U>
 void HashMap<K, V, U>::release_allocated_buffer() {
   if (capacity_ > 0) {
-    allocator_callbacks_.deallocate(ptr_, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(occupied_flags_, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(keys_, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(values_, allocator_callbacks_.user_context);
     capacity_ = 0;
   }
   size_ = 0;
@@ -218,18 +217,11 @@ void HashMap<K, V, U>::change_capacity(const uint32_t new_capacity) {
   const auto prev_occupied_flags = occupied_flags_;
   const auto prev_keys = keys_;
   const auto prev_values = values_;
-  const auto prev_ptr = ptr_;
   capacity_ = new_capacity;
   {
-    const auto occupied_flags_size_in_bytes = static_cast<uint32_t>(sizeof(occupied_flags_[0])) * capacity_;
-    const auto keys_size_in_bytes = static_cast<uint32_t>(sizeof(keys_[0])) * capacity_;
-    const auto values_size_in_bytes = static_cast<uint32_t>(sizeof(values_[0])) * capacity_;
-    const auto offset1 = Align(occupied_flags_size_in_bytes, alignof(K));
-    const auto offset2 = Align(offset1 + keys_size_in_bytes, alignof(V));
-    ptr_ = allocator_callbacks_.allocate(offset2 + values_size_in_bytes, allocator_callbacks_.user_context);
-    occupied_flags_ = static_cast<bool*>(ptr_);
-    keys_ = static_cast<K*>(reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(ptr_) + offset1));
-    values_ = static_cast<V*>(reinterpret_cast<void*>(reinterpret_cast<std::uintptr_t>(ptr_) + offset2));
+    occupied_flags_ = static_cast<bool*>(allocator_callbacks_.allocate(sizeof(occupied_flags_[0]) * capacity_, alignof(bool), allocator_callbacks_.user_context));
+    keys_ = static_cast<K*>(allocator_callbacks_.allocate(sizeof(K) * capacity_, alignof(K), allocator_callbacks_.user_context));
+    values_ = static_cast<V*>(allocator_callbacks_.allocate(sizeof(V) * capacity_, alignof(V), allocator_callbacks_.user_context));
   }
   clear();
   for (uint32_t i = 0; i < prev_capacity; i++) {
@@ -240,7 +232,9 @@ void HashMap<K, V, U>::change_capacity(const uint32_t new_capacity) {
   }
   size_ = prev_size;
   if (prev_capacity > 0) {
-    allocator_callbacks_.deallocate(prev_ptr, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(prev_occupied_flags, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(prev_keys, allocator_callbacks_.user_context);
+    allocator_callbacks_.deallocate(prev_values, allocator_callbacks_.user_context);
   }
 }
 } // namespace tote
