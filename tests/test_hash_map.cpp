@@ -325,3 +325,20 @@ TEST_CASE("move") {
   CHECK_EQ(user_context2.alloc_count, user_context2.dealloc_count);
   CHECK_UNARY(user_context2.ptr.empty());
 }
+TEST_CASE("simple iterator function") {
+  using namespace tote;
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
+    .allocate = Allocate,
+    .deallocate = Deallocate,
+    .user_context = &user_context,
+  };
+  HashMap<uint64_t, uint32_t, UserContext> hash_map(allocator_callbacks, 5);
+  hash_map.insert(100, 101);
+  hash_map.insert(101, 102);
+  hash_map.iterate([](const uint64_t, uint32_t* val) {
+    *val = *val - 1;
+  });
+  CHECK_EQ(hash_map[100], 100);
+  CHECK_EQ(hash_map[101], 101);
+}

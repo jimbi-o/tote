@@ -32,10 +32,12 @@ class HashMap final {
   bool contains(const K) const;
   V& operator[](const K);
   const V& operator[](const K) const;
+  using SimpleIteratorFunction = void (*)(const K, V*);
+  void iterate(SimpleIteratorFunction&&);
   template <typename T>
   using IteratorFunction = void (*)(T*, const K, V*);
   template <typename T>
-  void iterate(IteratorFunction<T>, T*);
+  void iterate(IteratorFunction<T>&&, T*);
  private:
   uint32_t find_slot_index(const K) const;
   bool check_load_factor_and_resize();
@@ -187,8 +189,15 @@ const V& HashMap<K, V, U>::operator[](const K key) const {
   return values_[index];
 }
 template <typename K, typename V, typename U>
+void HashMap<K, V, U>::iterate(SimpleIteratorFunction&& f) {
+  for (uint32_t i = 0; i < capacity_; i++) {
+    if (!occupied_flags_[i]) { continue; }
+    f(keys_[i], &values_[i]);
+  }
+}
+template <typename K, typename V, typename U>
 template <typename T>
-void HashMap<K, V, U>::iterate(IteratorFunction<T> f, T* entity) {
+void HashMap<K, V, U>::iterate(IteratorFunction<T>&& f, T* entity) {
   for (uint32_t i = 0; i < capacity_; i++) {
     if (!occupied_flags_[i]) { continue; }
     f(entity, keys_[i], &values_[i]);
