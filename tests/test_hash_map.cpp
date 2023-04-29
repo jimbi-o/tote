@@ -342,3 +342,26 @@ TEST_CASE("simple iterator function") {
   CHECK_EQ(hash_map[100], 100);
   CHECK_EQ(hash_map[101], 101);
 }
+TEST_CASE("insert with []") {
+  using namespace tote;
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
+    .allocate = Allocate,
+    .deallocate = Deallocate,
+    .user_context = &user_context,
+  };
+  HashMap<uint64_t, uint32_t, UserContext> hash_map(allocator_callbacks, 5);
+  hash_map[100] = 101;
+  hash_map.insert(101, 102);
+  hash_map.iterate([](const uint64_t, uint32_t* val) {
+    *val = *val - 1;
+  });
+  CHECK_EQ(hash_map[100], 100);
+  CHECK_EQ(hash_map[101], 101);
+  hash_map[100] = 55;
+  hash_map.iterate([](const uint64_t, uint32_t* val) {
+    *val = *val - 1;
+  });
+  CHECK_EQ(hash_map[100], 54);
+  CHECK_EQ(hash_map[101], 100);
+}

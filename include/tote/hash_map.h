@@ -180,6 +180,9 @@ bool HashMap<K, V, U>::contains(const K key) const {
 }
 template <typename K, typename V, typename U>
 V& HashMap<K, V, U>::operator[](const K key) {
+  if (!contains(key)) {
+    insert(key, {});
+  }
   const auto index = find_slot_index(key);
   return values_[index];
 }
