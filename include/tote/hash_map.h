@@ -10,6 +10,13 @@ namespace tote {
 template <typename K, typename V, typename U>
 class HashMap final {
  public:
+  using SimpleIteratorFunction = void (*)(const K, V*);
+  using ConstSimpleIteratorFunction = void (*)(const K, const V*);
+  template <typename T>
+  using IteratorFunction = void (*)(T*, const K, V*);
+  template <typename T>
+  using ConstIteratorFunction = void (*)(T*, const K, const V*);
+
   HashMap(AllocatorCallbacks<U> allocator_callbacks, const uint32_t initial_capacity = 0);
   HashMap(HashMap&&);
   HashMap& operator=(HashMap&&);
@@ -32,12 +39,10 @@ class HashMap final {
   bool contains(const K) const;
   V& operator[](const K);
   const V& operator[](const K) const;
-  using SimpleIteratorFunction = void (*)(const K, V*);
   void iterate(SimpleIteratorFunction&&);
-  template <typename T>
-  using IteratorFunction = void (*)(T*, const K, V*);
-  template <typename T>
-  void iterate(IteratorFunction<T>&&, T*);
+  void iterate(ConstSimpleIteratorFunction&&) const;
+  template <typename T> void iterate(IteratorFunction<T>&&, T*);
+  template <typename T> void iterate(ConstIteratorFunction<T>&&, T*) const;
  private:
   uint32_t find_slot_index(const K) const;
   bool check_load_factor_and_resize();
@@ -199,8 +204,23 @@ void HashMap<K, V, U>::iterate(SimpleIteratorFunction&& f) {
   }
 }
 template <typename K, typename V, typename U>
+void HashMap<K, V, U>::iterate(ConstSimpleIteratorFunction&& f) const {
+  for (uint32_t i = 0; i < capacity_; i++) {
+    if (!occupied_flags_[i]) { continue; }
+    f(keys_[i], &values_[i]);
+  }
+}
+template <typename K, typename V, typename U>
 template <typename T>
 void HashMap<K, V, U>::iterate(IteratorFunction<T>&& f, T* entity) {
+  for (uint32_t i = 0; i < capacity_; i++) {
+    if (!occupied_flags_[i]) { continue; }
+    f(entity, keys_[i], &values_[i]);
+  }
+}
+template <typename K, typename V, typename U>
+template <typename T>
+void HashMap<K, V, U>::iterate(ConstIteratorFunction<T>&& f, T* entity) const {
   for (uint32_t i = 0; i < capacity_; i++) {
     if (!occupied_flags_[i]) { continue; }
     f(entity, keys_[i], &values_[i]);

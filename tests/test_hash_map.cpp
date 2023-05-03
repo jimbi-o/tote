@@ -365,3 +365,36 @@ TEST_CASE("insert with []") {
   CHECK_EQ(hash_map[100], 54);
   CHECK_EQ(hash_map[101], 100);
 }
+TEST_CASE("const iterator") {
+  using namespace tote;
+  UserContext user_context{};
+  AllocatorCallbacks<UserContext> allocator_callbacks {
+    .allocate = Allocate,
+    .deallocate = Deallocate,
+    .user_context = &user_context,
+  };
+  HashMap<uint32_t, uint32_t, UserContext> hash_map(allocator_callbacks, 5);
+  hash_map.insert(100, 101);
+  hash_map.insert(101, 102);
+  hash_map.insert(102, 103);
+  struct Entity {
+    uint32_t count = 0;
+    uint32_t key_sum = 0;
+    uint32_t sum = 0;
+  } entity {};
+  const auto& const_hash_map = hash_map;
+  const_hash_map.iterate<Entity>([](Entity* data, const uint32_t key, const uint32_t* value) {
+    data->count++;
+    data->key_sum += key;
+    data->sum += *value;
+  }, &entity);
+  CHECK_EQ(hash_map.size(), 3);
+  CHECK_LT(hash_map.size(), hash_map.capacity());
+  CHECK_GT(hash_map.size() * 2, hash_map.capacity());
+  CHECK_EQ(entity.count, hash_map.size());
+  CHECK_EQ(entity.key_sum, 303);
+  CHECK_EQ(entity.sum, 306);
+  hash_map.~HashMap();
+  CHECK_EQ(user_context.alloc_count, user_context.dealloc_count);
+  CHECK_UNARY(user_context.ptr.empty());
+}
